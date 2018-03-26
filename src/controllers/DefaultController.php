@@ -2,7 +2,6 @@
 
 namespace yozh\form\controllers;
 
-use yozh\crud\traits\CRUDTrait;
 use yozh\form\models\BaseModel;
 use yozh\form\AssetsBundle;
 use yozh\base\controllers\DefaultController as Controller;
