@@ -2,7 +2,7 @@
 
 namespace yozh\form;
 
-class AssetsBundle extends \yozh\base\AssetBundle
+class AssetBundle extends \yozh\base\AssetBundle
 {
 
     public $sourcePath = __DIR__ .'/../assets/';
@@ -13,11 +13,14 @@ class AssetsBundle extends \yozh\base\AssetBundle
     ];
 	
     public $js = [
-        //'js/yozh-form.js'
+        'js/yozh-form.js'
     ];
 	
 	public $publishOptions = [
-		//'forceCopy'       => true,
+		'forceCopy'       => true,
 	];
 	
+	public $depends = [
+		\yozh\base\AssetBundle::class,
+	];
 }
