@@ -21,13 +21,11 @@ use yii\helpers\Json;
 
 class ActiveBooleanColumn extends \yii\grid\DataColumn
 {
-	public $template = '<span class="glyphicon glyphicon-{value}"></span>';
+	public $template = '<i class="glyphicon glyphicon-{value}"></i>';
 	
 	public $templateValue = [ 'minus', 'ok' ];
 	
 	public $ownerClass = [ 'yozh-false', 'yozh-true' ];
-	
-	public $classValue = [ 'false', 'true' ];
 	
 	public $format = 'html';
 	
