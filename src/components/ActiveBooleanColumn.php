@@ -18,26 +18,37 @@ use yozh\base\helpers\Config;
 use yozh\form\AssetBundle;
 use yozh\form\Module;
 use yii\helpers\Json;
+use yii\helpers\Url;
 
 class ActiveBooleanColumn extends \yii\grid\DataColumn
 {
+	public $class = 'yozh-active-boolean';
+	
+	public $format = 'html';
+	
 	public $template = '<i class="glyphicon glyphicon-{value}"></i>';
 	
 	public $templateValue = [ 'minus', 'ok' ];
 	
 	public $ownerClass = [ 'yozh-false', 'yozh-true' ];
 	
-	public $format = 'html';
-	
-	public $url = 'switch';
-	
-	public $class = 'yozh-active-boolean';
+	public $url;
 	
 	public $callback;
 	
 	public $confirm = true;
 	
 	public $data = [];
+	
+	public function __construct( array $config = [] )
+	{
+		
+		$config['url'] ?? $this->url = Url::to( [ 'switch' ] );
+		
+		parent::__construct( $config );
+		
+	}
+	
 	
 	public function renderFilterCell()
 	{
