@@ -61,9 +61,24 @@ $(function () {
         //e.preventDefault();
     });
 
+    $(document).on('fileselect', '.file-input input', function( _event, _numFiles, _label ) {
 
+        var _$owner = $(this);
+        var _$clearButton = _$owner.parents('.file-input').find('.fileinput-remove-button');
+
+        _$clearButton.find('.counter').remove();
+
+        if( _numFiles == 0 ){
+            return;
+        }
+        else if ( _numFiles == 1 ) {
+            _counterCaption = '1 file';
+        }
+        else{
+            _counterCaption =  _numFiles + ' files';
+        }
+
+        _$clearButton.append( '<span class="counter">' + _counterCaption + '</span>' );
+    })
+    ;
 });
-
-function foo(){
-    alert('foo');
-}
