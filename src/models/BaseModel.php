@@ -35,13 +35,14 @@ abstract class BaseModel extends ActiveRecord
 		return $this->_attributeList();
 	}
 	
-	protected function _attributeList()
-	{
-		return array_diff( array_keys( $this->attributes ), $this->primaryKey( true ) );;
-	}
-	
 	public function attributeIndexList()
 	{
+		/*
+		return [
+			'title' => 'title',
+		];
+		*/
+		
 		return $this->_attributeList();
 	}
 	
@@ -63,5 +64,10 @@ abstract class BaseModel extends ActiveRecord
 	public function attributeUpdateList()
 	{
 		return $this->_attributeList();
+	}
+	
+	protected function _attributeList()
+	{
+		return array_diff( array_keys( $this->attributes ), $this->primaryKey( true ) );;
 	}
 }

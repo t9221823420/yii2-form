@@ -15,7 +15,7 @@ use yozh\base\components\Inflector;
 class ActiveForm extends \yii\widgets\ActiveForm
 {
 	
-	public function fileds( ActiveRecord $model, $attributes = null, $print = true )
+	public function fields( ActiveRecord $model, $attributes = null, $print = true )
 	{
 		
 		if( !$attributes ) {

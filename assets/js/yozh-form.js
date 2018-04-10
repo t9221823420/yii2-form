@@ -79,6 +79,12 @@ $(function () {
         }
 
         _$clearButton.append( '<span class="counter">' + _counterCaption + '</span>' );
-    })
-    ;
+    });
+
+    /*
+    $(document).off().on( 'click', '.ui-accordion .ui-accordion-header a', function( e ){
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+    });
+    */
 });

@@ -16,7 +16,7 @@ $attributes = $model->attributes;
 	
 	<?php $form = ActiveForm::begin(); ?>
 	
-	<?php $fields = $form->fileds( $model,
+	<?php $fields = $form->fields( $model,
 		method_exists( $model, 'attributeEditList' )
                 ? $model->attributeEditList()
                 : array_keys( $model->attributes ),
