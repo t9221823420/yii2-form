@@ -45,7 +45,7 @@ class ActiveForm extends \yii\widgets\ActiveForm
 							$model->$attributeName = $column->defaultValue;
 						}
 						
-						$result[ $attributeName ] = $field->checkbox();
+						$result[ $attributeName ] = $field->checkbox([], false);
 					}
 					
 					else if( $matches['type'] == 'enum' ) {
