@@ -10,21 +10,10 @@ namespace yozh\form\traits;
 
 trait ActiveBooleanColumnTrait
 {
-	public function actionSwitch( $id, $attribute , $value )
-	{
-		$model = $this->findModel( $id );
-		
-		if( isset( $model->$attribute ) ) {
-			
-			$model->setAttribute( $attribute, (int)$value ? false : true );
-			
-			if( $model->save() ) {
-				return true;
-			}
-		}
-		
-		throw new \yii\web\NotFoundHttpException();
-		
-	}
+	use ActionUpdateAttributeTrait;
 	
+	public function actionSwitch( $id, $attribute, $value )
+	{
+		return static::actionUpdateAttribute( $id, $attribute, $value );
+	}
 }

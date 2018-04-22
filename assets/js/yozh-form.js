@@ -30,11 +30,11 @@ $(function () {
 
                 if ( _$owner.data(_value) ) {
                     _$owner.data(_value, 0);
-                    _$owner.removeClass( _ownerClass[1] ).addClass( _ownerClass[0] );
+                    _$owner.removeClass( _ownerClass[0] ).addClass( _ownerClass[1] );
                 }
                 else {
                     _$owner.data(_value, 1);
-                    _$owner.removeClass( _ownerClass[0] ).addClass( _ownerClass[1] );
+                    _$owner.removeClass( _ownerClass[1] ).addClass( _ownerClass[0] );
                 }
 
                 _result = parseInt( _$owner.data( _value ) );

@@ -68,6 +68,8 @@ abstract class BaseModel extends ActiveRecord
 	
 	protected function _attributeList()
 	{
-		return array_diff( array_keys( $this->attributes ), $this->primaryKey( true ) );;
+		$attributes = array_diff( array_keys( $this->attributes ), $this->primaryKey( true ) );
+		
+		return array_combine( $attributes, $attributes);
 	}
 }

@@ -160,7 +160,7 @@ class ActiveBooleanColumn extends \yii\grid\DataColumn
 						$contentOptions = ArrayHelper::merge( [
 							'data-' . $primaryKey => $model->primaryKey,
 							'data-attribute'      => $attribute,
-							'data-value'          => $model->$attribute,
+							'data-value'          => $model->$attribute ? 0 : 1,
 						], $contentOptions );
 					}
 					
