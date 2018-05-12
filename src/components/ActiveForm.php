@@ -19,7 +19,7 @@ class ActiveForm extends \yii\widgets\ActiveForm
 	{
 		
 		if( !$attributes ) {
-			$attributes = array_diff( array_keys($model->attributes),  $model->primaryKey(true) );
+			$attributes = array_diff( array_keys( $model->attributes ), $model->primaryKey( true ) );
 		}
 		
 		$tableName = Inflector::resolveTableName( $model::tableName() );
@@ -30,7 +30,10 @@ class ActiveForm extends \yii\widgets\ActiveForm
 		$result = [];
 		
 		foreach( $attributes as $attributeName ) {
-			if( isset( $columns[ $attributeName ] ) ) {
+			
+			$output = $field = null;
+			
+			if( $columns[ $attributeName ] ?? false ) {
 				
 				$column = $columns[ $attributeName ];
 				
@@ -41,36 +44,53 @@ class ActiveForm extends \yii\widgets\ActiveForm
 					
 					if( $matches['type'] == 'tinyint' && $matches['size'] == 1 ) { //boolean
 						
-						if( $model->isNewRecord && $column->defaultValue){
+						if( $model->isNewRecord && $column->defaultValue ) {
 							$model->$attributeName = $column->defaultValue;
 						}
 						
-						$result[ $attributeName ] = $field->checkbox([], false);
+						$output = $field->checkbox( [], false );
 					}
 					
 					else if( $matches['type'] == 'enum' ) {
-						$result[ $attributeName ] = $field->dropDownList( array_combine($column->enumValues, $column->enumValues),
+						$output = $field->dropDownList( array_combine( $column->enumValues, $column->enumValues ),
 							[
 								//'class'      => 'form-control',
 								//'prompt'     => Yii::t( 'app', 'Select country' ),
 							] );
 					}
 					
-					elseif( ($matches['type'] == 'varchar' && $matches['size'] > 256 ) || $matches['type'] == 'text' ) {
-						$result[ $attributeName ] = $field->textarea(['rows' => 3]);
+					else if( ( $matches['type'] == 'varchar' && $matches['size'] > 256 ) || $matches['type'] == 'text' ) {
+						$output = $field->textarea( [ 'rows' => 3 ] );
 					}
 					
 					else {
-						$result[ $attributeName ] = $field->textInput( [ 'maxlength' => true ] );
+						$output = $field->textInput( [ 'maxlength' => true ] );
 					}
 					
-					if( $print ){
-						print $result[ $attributeName ];
+					if( $print ) {
+						print $output;
 					}
 					
 				}
 				
 			}
+			else if( in_array( $attributeName, $model->safeAttributes() ) ) {
+				
+				$field  = $this->field( $model, $attributeName );
+				$output = $field->textInput( [ 'maxlength' => true ] );
+				
+			}
+			
+			if( $output ) {
+				
+				$result[ $attributeName ] = $output;
+				
+				if( $print ) {
+					print $output;
+				}
+				
+			}
+			
 		}
 		
 		return $result;
