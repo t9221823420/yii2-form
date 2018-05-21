@@ -14,7 +14,7 @@ $( function () {
 	
 	$( document ).on( 'click', '.yozh-active-boolean', function ( e ) {
 		
-		var _$context = $( this );
+		var _$target = $( this );
 		var _options = yozh.Form.activeBoolean;
 		
 		var _template = _options.template;
@@ -23,36 +23,36 @@ $( function () {
 		var _ownerClass = _options.ownerClass;
 		
 		$.ajax( {
-				url : _$context.attr( 'url' ),
-				data : _$context.data(),
+				url : _$target.attr( 'url' ),
+				data : _$target.data(),
 			} )
 			.done( function ( _response ) {
 				
-				if ( _$context.data( _value ) ) {
-					_$context.data( _value, 0 );
-					_$context.removeClass( _ownerClass[ 0 ] ).addClass( _ownerClass[ 1 ] );
+				if ( _$target.data( _value ) ) {
+					_$target.data( _value, 0 );
+					_$target.removeClass( _ownerClass[ 0 ] ).addClass( _ownerClass[ 1 ] );
 				}
 				else {
-					_$context.data( _value, 1 );
-					_$context.removeClass( _ownerClass[ 1 ] ).addClass( _ownerClass[ 0 ] );
+					_$target.data( _value, 1 );
+					_$target.removeClass( _ownerClass[ 1 ] ).addClass( _ownerClass[ 0 ] );
 				}
 				
-				_result = parseInt( _$context.data( _value ) );
+				_result = parseInt( _$target.data( _value ) );
 				
 				$.each( _templateValue, function ( _index, _value ) {
 					_template = strtr( _template, _index, _value[ _result ] );
 				} );
 				
-				_$context.html( _template );
+				_$target.html( _template );
 				
 				
-				var _callback = _$context.attr( 'callback' );
+				var _callback = _$target.attr( 'callback' );
 				
 				if ( typeof _callback === 'function' ) {
-					_callback( _$context, _result );
+					_callback( _$target, _result );
 				}
 				else if ( typeof _callback === 'string' ) {
-					call_user_func( _callback, window, _$context, _result );
+					call_user_func( _callback, window, _$target, _result );
 				}
 				
 			} );
@@ -62,8 +62,8 @@ $( function () {
 	
 	$( document ).on( 'fileselect', '.file-input input', function ( _event, _numFiles, _label ) {
 		
-		var _$context = $( this );
-		var _$clearButton = _$context.parents( '.file-input' ).find( '.fileinput-remove-button' );
+		var _$target = $( this );
+		var _$clearButton = _$target.parents( '.file-input' ).find( '.fileinput-remove-button' );
 		
 		_$clearButton.find( '.counter' ).remove();
 		
