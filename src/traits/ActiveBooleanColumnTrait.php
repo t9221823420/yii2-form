@@ -8,6 +8,8 @@
 
 namespace yozh\form\traits;
 
+use yozh\base\traits\actions\ActionUpdateAttributeTrait;
+
 trait ActiveBooleanColumnTrait
 {
 	use ActionUpdateAttributeTrait;
