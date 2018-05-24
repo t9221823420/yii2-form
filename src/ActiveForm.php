@@ -12,8 +12,8 @@ use Yii;
 use yii\base\Model;
 use yii\db\ActiveRecord;
 use yii\helpers\Html;
-use yozh\base\components\ArrayHelper;
-use yozh\base\components\Inflector;
+use yozh\base\components\utils\ArrayHelper;
+use yozh\base\components\utils\Inflector;
 
 class ActiveForm extends \yii\widgets\ActiveForm
 {
