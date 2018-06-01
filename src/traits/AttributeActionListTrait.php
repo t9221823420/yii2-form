@@ -16,7 +16,7 @@ trait AttributeActionListTrait
 	 */
 	public function attributeLabels()
 	{
-		return $this->_attributeList();
+		return [];
 	}
 	
 	public function attributeIndexList()
