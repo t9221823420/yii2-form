@@ -35,7 +35,7 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 	
 	public $submitButton;
 	
-	public function fields( Model $Model, $attributes = null, $params )
+	public function fields( Model $Model, $attributes = null, $params = [] )
 	{
 		/**
 		 * @var string $print
@@ -93,8 +93,8 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 						
 						foreach( $attributeReferences[ $attributeName ] as $refName => $reference ) {
 							
-							if( !$refItems ) {
-								if( !$refQuery ) {
+							//if( !$refItems ) {
+								//if( !$refQuery ) {
 									
 									$refAttributes = $Shema->getTableSchema( $reference[0] )->columns;
 									
@@ -113,12 +113,14 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 										->from( $reference[0] )
 										->andFilterWhere( $refCondition )
 										;
-								}
-							}
+								//}
+							//}
 							
 							$refItems = $refQuery->indexBy( $reference[$attributeName] )->column();
 							
-							$output .= $field->dropDownList( $refItems, [] );
+							$output .= $field->dropDownList( $refItems, [
+								'prompt' => Yii::t( 'app', 'Select item' ),
+							] );
 							
 						}
 						
