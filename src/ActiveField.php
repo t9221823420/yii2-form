@@ -104,8 +104,9 @@ class ActiveField extends \yii\bootstrap\ActiveField
 	
 	protected static function _initConfig()
 	{
-		$config = [
+		$config = array_merge( array_flip( static::getConstants( 'INPUT_TYPE' ) ), [
 			
+			/*
 			static::INPUT_TYPE_STRING => [
 				'widgets' => [
 					static::WIDGET_TYPE_TEXT => [
@@ -114,6 +115,7 @@ class ActiveField extends \yii\bootstrap\ActiveField
 					],
 				],
 			],
+			*/
 			
 			static::INPUT_TYPE_TEXT => [
 				'widgets' => [
@@ -140,17 +142,28 @@ class ActiveField extends \yii\bootstrap\ActiveField
 			],
 			*/
 		
-		];
+		] );
 		
 		$inputResult = [];
+		
+		$widgets = static::getConstants( 'WIDGET_TYPE' );
 		
 		foreach( $config as $inputType => $inputConfig ) {
 			
 			if( !is_array( $inputConfig ) ) {
-				$inputType   = $inputConfig;
+				
+				$inputType = $inputType;
+				
+				if( in_array( $inputConfig, $widgets ) ) {
+					$widget = $inputConfig;
+				}
+				else {
+					$widget = static::DEFAULT_WIDGET_TYPE;
+				}
+				
 				$inputConfig = [
 					'widgets' => [
-						$inputType,
+						$widget,
 					],
 				];
 			}
