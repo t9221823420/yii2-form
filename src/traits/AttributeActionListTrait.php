@@ -8,18 +8,20 @@
 
 namespace yozh\form\traits;
 
+use yozh\base\interfaces\models\ActiveRecordInterface;
+
 trait AttributeActionListTrait
 {
 	
 	/**
 	 * @inheritdoc
 	 */
-	public function attributeLabels()
+	public function attributeLabels( ?array $only = null, ?array $except = null, ?bool $schemaOnly = false )
 	{
 		return [];
 	}
 	
-	public function attributeIndexList()
+	public function attributesIndexList( ?array $only = null, ?array $except = null, ?bool $schemaOnly = false )
 	{
 		/*
 		return [
@@ -27,37 +29,58 @@ trait AttributeActionListTrait
 		];
 		*/
 		
-		return $this->_attributeList();
+		return $this->attributesDefaultList( $only, $except, $schemaOnly );
 	}
 	
-	public function attributeEditList()
+	public function attributesEditList( ?array $only = null, ?array $except = null, ?bool $schemaOnly = false )
 	{
-		return $this->_attributeList();
+		return $this->attributesDefaultList( $only, $except, $schemaOnly );
 	}
 	
-	public function attributeViewList()
+	public function attributesViewList( ?array $only = null, ?array $except = null, ?bool $schemaOnly = false )
 	{
-		return $this->_attributeList();
+		return $this->attributesDefaultList( $only, $except, $schemaOnly );
 	}
 	
-	public function attributeCreateList()
+	public function attributesCreateList( ?array $only = null, ?array $except = null, ?bool $schemaOnly = false )
 	{
-		return $this->attributeEditList();
+		return $this->attributesEditList( $only, $except, $schemaOnly );
 	}
 	
-	public function attributeUpdateList()
+	public function attributesUpdateList( ?array $only = null, ?array $except = null, ?bool $schemaOnly = false )
 	{
-		return $this->attributeEditList();
+		return $this->attributesEditList( $only, $except, $schemaOnly );
 	}
 	
-	protected function _attributeList()
+	public function attributesDefaultList( ?array $only = null, ?array $except = null, ?bool $schemaOnly = false )
 	{
-		$attributes = array_diff( array_keys( $this->attributes ), array_merge( $this->primaryKey( true ),  [
-				'created_at',
-				'updated_at',
-				'deleted_at',
-			])  );
+		$defaultExcept = array_merge( $this->primaryKey( true ), [
+			'created_at',
+			'updated_at',
+			'deleted_at',
+		] );
 		
-		return array_combine( $attributes, $attributes);
+		if( is_null($except)  ){
+			$except = $defaultExcept;
+		}
+		
+		if( $this instanceof ActiveRecordInterface ) {
+			$names = $this->attributes( $only, $except, $schemaOnly );
+		}
+		else {
+			
+			$names = $this->attributes();
+			
+			if( $only ) {
+				$names = array_intersect( $names, $only );
+			}
+			
+			if( $except ) {
+				$names = array_diff( $names, $except );
+			}
+			
+		}
+		
+		return array_combine( $names, $names );
 	}
 }

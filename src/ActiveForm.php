@@ -13,9 +13,10 @@ use yii\base\Model;
 use yii\db\ActiveRecord;
 use yii\db\Query;
 use yii\helpers\Html;
+use yii\helpers\Json;
 use yozh\base\components\utils\ArrayHelper;
 use yozh\base\components\utils\Inflector;
-use yozh\base\interfaces\ActiveRecordInterface;
+use yozh\base\interfaces\models\ActiveRecordInterface;
 use yozh\base\traits\ObjectTrait;
 use yozh\form\ActiveField;
 
@@ -93,30 +94,25 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 						
 						foreach( $attributeReferences[ $attributeName ] as $refName => $reference ) {
 							
-							//if( !$refItems ) {
-								//if( !$refQuery ) {
-									
-									$refAttributes = $Shema->getTableSchema( $reference[0] )->columns;
-									
-									if( isset( $refAttributes['name'] ) ) {
-										$refLabel = 'name';
-									}
-									else if( isset( $refAttributes['title'] ) ) {
-										$refLabel = 'title';
-									}
-									else{
-										$refLabel = $reference[ $attributeName ];
-									}
-									
-									$refQuery = ( new Query() )
-										->select( [ $refLabel, $reference[ $attributeName ] ] )
-										->from( $reference[0] )
-										->andFilterWhere( $refCondition )
-										;
-								//}
-							//}
+							$refAttributes = $Shema->getTableSchema( $reference[0] )->columns;
 							
-							$refItems = $refQuery->indexBy( $reference[$attributeName] )->column();
+							if( isset( $refAttributes['name'] ) ) {
+								$refLabel = 'name';
+							}
+							else if( isset( $refAttributes['title'] ) ) {
+								$refLabel = 'title';
+							}
+							else {
+								$refLabel = $reference[ $attributeName ];
+							}
+							
+							$refQuery = ( new Query() )
+								->select( [ $refLabel, $reference[ $attributeName ] ] )
+								->from( $reference[0] )
+								->andFilterWhere( $refCondition )
+							;
+							
+							$refItems = $refQuery->indexBy( $reference[ $attributeName ] )->column();
 							
 							$output .= $field->dropDownList( $refItems, [
 								'prompt' => Yii::t( 'app', 'Select item' ),
@@ -141,9 +137,23 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 					
 					else if( ( $matches['type'] == 'varchar' && $matches['size'] > 256 )
 						|| $matches['type'] == 'text'
-						|| $matches['type'] == 'json'
 					) {
 						$output .= $field->textarea( [ 'rows' => 3 ] );
+					}
+					
+					else if( $matches['type'] == 'json' ) {
+						
+						if( is_array( $Model->$attributeName ) ) {
+							$value = Json::encode( $Model->$attributeName );
+						}
+						else {
+							$value = $Model->$attributeName;
+						}
+						
+						$output .= $field->textarea( [
+							'rows'   => 3,
+							'value' => $value,
+						] );
 					}
 					
 					else {
@@ -185,7 +195,7 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 			
 			$this->fields( $Model,
 				$Model instanceof AttributeActionListInterface
-					? $Model->attributeEditList()
+					? $Model->attributesEditList()
 					: array_keys( $Model->attributes )
 			);
 			

@@ -10,16 +10,16 @@ namespace yozh\form\interfaces;
 
 interface AttributeActionListInterface
 {
-	public function attributeLabels();
+	public function attributeLabels( ?array $only = null, ?array $except = null, ?bool $schemaOnly = false );
 	
-	public function attributeIndexList();
+	public function attributesIndexList( ?array $only = null, ?array $except = null, ?bool $schemaOnly = false );
 	
-	public function attributeEditList();
+	public function attributesEditList( ?array $only = null, ?array $except = null, ?bool $schemaOnly = false );
 	
-	public function attributeViewList();
+	public function attributesViewList( ?array $only = null, ?array $except = null, ?bool $schemaOnly = false );
 	
-	public function attributeCreateList();
+	public function attributesCreateList( ?array $only = null, ?array $except = null, ?bool $schemaOnly = false );
 	
-	public function attributeUpdateList();
+	public function attributesUpdateList( ?array $only = null, ?array $except = null, ?bool $schemaOnly = false );
 	
 }
