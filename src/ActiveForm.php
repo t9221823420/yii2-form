@@ -8,6 +8,7 @@
 
 namespace yozh\form;
 
+use kartik\select2\Select2;
 use Yii;
 use yii\base\Model;
 use yii\db\ActiveRecord;
@@ -19,6 +20,7 @@ use yozh\base\components\utils\Inflector;
 use yozh\base\interfaces\models\ActiveRecordInterface;
 use yozh\base\traits\ObjectTrait;
 use yozh\form\ActiveField;
+use yii\helpers\Url;
 
 class ActiveForm extends \yii\bootstrap\ActiveForm
 {
@@ -58,6 +60,8 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 					$attributeReferences[ $fk ][ $refName ] = $reference;
 				}
 			}
+			
+			$fk = $pk = null;
 		}
 		
 		if( !$attributes ) {
@@ -114,9 +118,53 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 							
 							$refItems = $refQuery->indexBy( $reference[ $attributeName ] )->column();
 							
+							$label = preg_replace('/\sId/', '', Html::encode( $Model->getAttributeLabel( $attributeName ) ));
+							
+							/*
 							$output .= $field->dropDownList( $refItems, [
 								'prompt' => Yii::t( 'app', 'Select item' ),
-							] );
+							] )
+							;
+							*/
+
+							$relationGetter = 'get' . Inflector::camelize( preg_replace('/_id$/', '', $attributeName ) );
+							
+							if( method_exists( $Model, $relationGetter)
+								&& $activeQuery = $Model->$relationGetter()
+							){
+								$refModelClass = $activeQuery->modelClass;
+							}
+							else{
+								$refModelClass = null;
+							}
+							
+							if ( $refModelClass && $refRoute = $refModelClass::getRoute( 'create' ) ){
+								$addon = [
+									'append' => [
+										'content'  => Html::a( '<i class="glyphicon glyphicon-plus"></i>', Url::to([ '/' . $refRoute ]), [
+											'class'       => 'btn btn-success',
+											'title'       => Yii::t( 'app', 'Add '. $label),
+											//'data-toggle' => 'tooltip',
+										] ),
+										'asButton' => true,
+									],
+								];
+							}
+							else{
+								$addon = false;
+							}
+							
+							$output .= $field->widget( Select2::class, [
+								'data' => $refItems,
+								'options' => [
+									'prompt' => Yii::t( 'app', 'Select ' . $label),
+								],
+								'pluginOptions' => [
+									'allowClear' => true
+								],
+								'addon' => $addon,
+							])->label( Yii::t( 'app', $label ) )
+							;
 							
 						}
 						
@@ -132,7 +180,9 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 					}
 					
 					else if( $matches['type'] == 'enum' ) {
-						$output .= $field->dropDownList( array_combine( $column->enumValues, $column->enumValues ) );
+						$output .= $field->dropDownList( array_combine( $column->enumValues, $column->enumValues ), [
+							'prompt' => Yii::t( 'app', 'Select ' . Inflector::titleize( $attributeName ) ),
+						] );
 					}
 					
 					else if( ( $matches['type'] == 'varchar' && $matches['size'] > 256 )
@@ -151,7 +201,7 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 						}
 						
 						$output .= $field->textarea( [
-							'rows'   => 3,
+							'rows'  => 3,
 							'value' => $value,
 						] );
 					}
@@ -203,7 +253,7 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 		
 		print $this->_renderSubmitButton();
 		
-		parent::run();
+		return parent::run();
 	}
 	
 	public function init()
