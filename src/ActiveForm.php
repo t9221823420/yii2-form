@@ -15,9 +15,10 @@ use yii\db\ActiveRecord;
 use yii\db\Query;
 use yii\helpers\Html;
 use yii\helpers\Json;
-use yozh\base\components\utils\ArrayHelper;
-use yozh\base\components\utils\Inflector;
+use yozh\base\components\helpers\ArrayHelper;
+use yozh\base\components\helpers\Inflector;
 use yozh\base\interfaces\models\ActiveRecordInterface;
+use yozh\base\models\BaseModel;
 use yozh\base\traits\ObjectTrait;
 use yozh\form\ActiveField;
 use yii\helpers\Url;
@@ -93,8 +94,12 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 				
 				//if( preg_match_all('/(?<type>[a-z]+(?=(?:\(|$)))|(?<size>\d+)|\'(?<values>\w+)\'/', $column->dbType, $matches) ){
 				if( preg_match( '/(?<type>[a-z]+)[\(]{0,}(?<size>\d*)/', $column->dbType, $matches ) ) {
+				
+					if( !$Model->isNewRecord && $Model instanceof BaseModel && $Model->isReadOnlyAttribute( $attributeName ) ) {
+						$output .= 'foo<br />';
+					}
 					
-					if( isset( $attributeReferences[ $attributeName ] ) ) {
+					else if( isset( $attributeReferences[ $attributeName ] ) ) {
 						
 						foreach( $attributeReferences[ $attributeName ] as $refName => $reference ) {
 							

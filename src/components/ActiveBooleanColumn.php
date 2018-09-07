@@ -13,7 +13,7 @@ use Yii;
 use yii\db\ActiveRecord;
 use yii\jui\Widget;
 use yii\web\View;
-use yozh\base\components\utils\ArrayHelper;
+use yozh\base\components\helpers\ArrayHelper;
 use yozh\base\components\utils\Config;
 use yozh\form\AssetBundle;
 use yozh\form\Module;

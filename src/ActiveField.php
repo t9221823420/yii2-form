@@ -13,6 +13,7 @@ use kartik\markdown\MarkdownEditor;
 use kartik\widgets\DateTimePicker;
 use powerkernel\tinymce\TinyMce;
 use Yii;
+use yii\helpers\Html;
 use yii\web\View;
 use yozh\base\traits\ObjectTrait;
 
@@ -325,5 +326,18 @@ JS;
 		return $output;
 	}
 	
+	public function static( $options = [] )
+	{
+		$options = array_merge( $this->inputOptions, $options );
+		
+		$this->addAriaAttributes( $options );
+		$this->adjustLabelFor( $options );
+		
+		Html::addCssClass($options, 'static');
+		
+		$this->parts['{input}'] = Html::tag('div', $this->model->{$this->attribute}, $options);
+		
+		return $this;
+	}
 	
 }
