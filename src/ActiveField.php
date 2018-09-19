@@ -53,8 +53,7 @@ class ActiveField extends \yii\bootstrap\ActiveField
 	const WIDGET_TYPE_SELECT   = 'select';
 	const WIDGET_TYPE_DROPDOWN = 'dropdown';
 	
-	const DEFAULT_INPUT_TYPE = self::INPUT_TYPE_STRING;
-	
+	const DEFAULT_INPUT_TYPE  = self::INPUT_TYPE_STRING;
 	const DEFAULT_WIDGET_TYPE = self::WIDGET_TYPE_TEXT;
 	
 	protected static $_inputsConfig;
@@ -169,12 +168,16 @@ class ActiveField extends \yii\bootstrap\ActiveField
 				];
 			}
 			
-			if( !isset( $inputConfig['name'] ) ) { //
+			if( !isset( $inputConfig['name'] ) ) {
 				$inputConfig['name'] = $inputType;
 			}
 			
-			if( !isset( $inputConfig['label'] ) ) { //
+			if( !isset( $inputConfig['label'] ) ) {
 				$inputConfig['label'] = static::getLabel( $inputType );
+			}
+			
+			if( !isset( $inputConfig['rules'] ) ) {
+				$inputConfig['rules'] = [];
 			}
 			
 			$inputConfig['label'] = Yii::t( 'app', ucfirst( $inputConfig['label'] ) );
@@ -186,7 +189,6 @@ class ActiveField extends \yii\bootstrap\ActiveField
 				if( !is_array( $widgetConfig ) ) {
 					$widgetName   = $widgetConfig;
 					$widgetConfig = [
-						'rules'  => [],
 						'config' => [],
 					];
 				}
@@ -333,9 +335,9 @@ JS;
 		$this->addAriaAttributes( $options );
 		$this->adjustLabelFor( $options );
 		
-		Html::addCssClass($options, 'static');
+		Html::addCssClass( $options, 'static' );
 		
-		$this->parts['{input}'] = Html::tag('div', $this->model->{$this->attribute}, $options);
+		$this->parts['{input}'] = Html::tag( 'div', $this->model->{$this->attribute}, $options );
 		
 		return $this;
 	}
