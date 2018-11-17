@@ -10,6 +10,7 @@ namespace yozh\form;
 
 use kartik\select2\Select2;
 use Yii;
+use yii\base\DynamicModel;
 use yii\base\Model;
 use yii\db\ActiveRecord;
 use yii\db\Query;
@@ -18,7 +19,7 @@ use yii\helpers\Json;
 use yozh\base\components\helpers\ArrayHelper;
 use yozh\base\components\helpers\Inflector;
 use yozh\base\interfaces\models\ActiveRecordInterface;
-use yozh\base\models\BaseModel;
+use yozh\base\models\BaseActiveRecord;
 use yozh\base\traits\ObjectTrait;
 use yozh\form\ActiveField;
 use yii\helpers\Url;
@@ -66,21 +67,25 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 		}
 		
 		if( !$attributes ) {
-			$attributes = array_diff( array_keys( $Model->attributes ), $Model->primaryKey( true ) );
+			$attributes = array_diff( array_keys( $Model->attributes ), $Model instanceof ActiveRecord ? $Model->primaryKey( true ) : [] );
 		}
 		
 		if( $this->attributes ) {
 			$attributes = array_intersect( $attributes, (array)$this->attributes );
 		}
 		
-		$Shema = Yii::$app->db->getSchema();
+		$result = $columns = [];
 		
-		$tableName = $Shema->getRawTableName( $Model::tableName() );
+		if ( $Model instanceof ActiveRecord ){
+
+			$Shema = Yii::$app->db->getSchema();
+			
+			$tableName = $Shema->getRawTableName( $Model::tableName() );
+			
+			$tableSchema = $Shema->getTableSchema( $tableName );
+			$columns     = $tableSchema->columns;
 		
-		$tableSchema = $Shema->getTableSchema( $tableName );
-		$columns     = $tableSchema->columns;
-		
-		$result = [];
+		}
 		
 		foreach( $attributes as $attributeName ) {
 			
@@ -94,9 +99,9 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 				
 				//if( preg_match_all('/(?<type>[a-z]+(?=(?:\(|$)))|(?<size>\d+)|\'(?<values>\w+)\'/', $column->dbType, $matches) ){
 				if( preg_match( '/(?<type>[a-z]+)[\(]{0,}(?<size>\d*)/', $column->dbType, $matches ) ) {
-				
-					if( !$Model->isNewRecord && $Model instanceof BaseModel && $Model->isReadOnlyAttribute( $attributeName ) ) {
-						$output .= 'foo<br />';
+					
+					if( !$Model->isNewRecord && $Model instanceof BaseActiveRecord && $Model->isReadOnlyAttribute( $attributeName ) ) {
+						// $output .= 'foo<br />'; вывод статичных аттрибутов
 					}
 					
 					else if( isset( $attributeReferences[ $attributeName ] ) ) {
@@ -115,15 +120,30 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 								$refLabel = $reference[ $attributeName ];
 							}
 							
-							$refQuery = ( new Query() )
-								->select( [ $refLabel, $reference[ $attributeName ] ] )
-								->from( $reference[0] )
-								->andFilterWhere( $refCondition )
-							;
+							/*
+							 * @todo доделать, когда будет полностью реализован Relations
+							 * на текущий момент определяется по связям в БД
+							 * нет возможности определить какой класс отвечает за getList
+							 */
+							if( 0 && ( new ReflectionClass( 'TheClass' ) )->implementsInterface( ActiveRecordInterface ) ) {
+								
+								$refItems = 1;
+								
+							}
+							else{
+
+								$refQuery = ( new Query() )
+									->select( [ $refLabel, $reference[ $attributeName ] ] )
+									->from( $reference[0] )
+									->andFilterWhere( $refCondition )
+								;
+								
+								$refItems = $refQuery->indexBy( $reference[ $attributeName ] )->column();
+								
+							}
 							
-							$refItems = $refQuery->indexBy( $reference[ $attributeName ] )->column();
 							
-							$label = preg_replace('/\sId/', '', Html::encode( $Model->getAttributeLabel( $attributeName ) ));
+							$label = preg_replace( '/\sId$/', '', Html::encode( $Model->getAttributeLabel( $attributeName ) ) );
 							
 							/*
 							$output .= $field->dropDownList( $refItems, [
@@ -131,44 +151,44 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 							] )
 							;
 							*/
-
-							$relationGetter = 'get' . Inflector::camelize( preg_replace('/_id$/', '', $attributeName ) );
 							
-							if( method_exists( $Model, $relationGetter)
+							$relationGetter = 'get' . Inflector::camelize( preg_replace( '/_id$/', '', $attributeName ) );
+							
+							if( method_exists( $Model, $relationGetter )
 								&& $activeQuery = $Model->$relationGetter()
-							){
+							) {
 								$refModelClass = $activeQuery->modelClass;
 							}
-							else{
+							else {
 								$refModelClass = null;
 							}
 							
-							if ( $refModelClass && $refRoute = $refModelClass::getRoute( 'create' ) ){
+							if( $refModelClass && $refRoute = $refModelClass::getRoute( 'create' ) ) {
 								$addon = [
 									'append' => [
-										'content'  => Html::a( '<i class="glyphicon glyphicon-plus"></i>', Url::to([ '/' . $refRoute ]), [
-											'class'       => 'btn btn-success',
-											'title'       => Yii::t( 'app', 'Add '. $label),
+										'content'  => Html::a( '<i class="glyphicon glyphicon-plus"></i>', Url::to( [ '/' . $refRoute ] ), [
+											'class' => 'btn btn-success',
+											'title' => Yii::t( 'app', 'Add ' . $label ),
 											//'data-toggle' => 'tooltip',
 										] ),
 										'asButton' => true,
 									],
 								];
 							}
-							else{
+							else {
 								$addon = false;
 							}
 							
 							$output .= $field->widget( Select2::class, [
-								'data' => $refItems,
-								'options' => [
-									'prompt' => Yii::t( 'app', 'Select ' . $label),
+								'data'          => $refItems,
+								'options'       => [
+									'prompt' => Yii::t( 'app', 'Select ' . $label ),
 								],
 								'pluginOptions' => [
-									'allowClear' => true
+									'allowClear' => true,
 								],
-								'addon' => $addon,
-							])->label( Yii::t( 'app', $label ) )
+								'addon'         => $addon,
+							] )->label( Yii::t( 'app', $label ) )
 							;
 							
 						}
@@ -220,8 +240,17 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 			}
 			else if( in_array( $attributeName, $Model->safeAttributes() ) ) {
 				
-				$field  = $this->field( $Model, $attributeName );
-				$output = $field->textInput( [ 'maxlength' => true ] );
+				$field = $this->field( $Model, $attributeName );
+				
+				$value = is_array( $Model->$attributeName )
+					? Json::encode( $Model->$attributeName )
+					: $Model->$attributeName;
+				
+				//$output = $field->textInput( [ 'maxlength' => true ] );
+				$output = $field->textarea( [
+					'rows'  => 3,
+					'value' => $value,
+				] );
 				
 			}
 			
@@ -297,6 +326,11 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 			
 			return Html::tag( $tag, $label, $submitButton );
 		}
+	}
+	
+	public function field( $model, $attribute, $options = [] ): ActiveField
+	{
+		return parent::field( $model, $attribute, $options ); // TODO: Change the autogenerated stub
 	}
 	
 	
