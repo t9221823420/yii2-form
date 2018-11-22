@@ -29,6 +29,17 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 	use ObjectTrait;
 	
 	/**
+	 * @var string $print
+	 * @var array $refCondition
+	 */
+	protected static $defaultFieldParams = [
+			'print'        => true,
+			'refItems'     => null,
+			'refQuery'     => null,
+			'refCondition' => [],
+		];
+	
+	/**
 	 * @var string the default field class name when calling [[field()]] to create a new field.
 	 * @see fieldConfig
 	 */
@@ -42,18 +53,7 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 	
 	public function fields( Model $Model, $attributes = null, $params = [] )
 	{
-		/**
-		 * @var string $print
-		 * @var array $refCondition
-		 */
-		$defaults = [
-			'print'        => true,
-			'refItems'     => null,
-			'refQuery'     => null,
-			'refCondition' => [],
-		];
-		
-		extract( ArrayHelper::setDefaults( $params, $defaults ) );
+		extract( ArrayHelper::setDefaults( $params, static::$defaultFieldParams ) );
 		
 		$attributeReferences = [];
 		if( $Model instanceof ActiveRecordInterface ) {
