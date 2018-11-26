@@ -23,12 +23,6 @@ trait AttributeActionListTrait
 	
 	public function attributesIndexList( ?array $only = null, ?array $except = null, ?bool $schemaOnly = false )
 	{
-		/*
-		return [
-			'title' => 'title',
-		];
-		*/
-		
 		return $this->attributesDefaultList( $only, $except, $schemaOnly );
 	}
 	
@@ -52,16 +46,19 @@ trait AttributeActionListTrait
 		return $this->attributesEditList( $only, $except, $schemaOnly );
 	}
 	
-	public function attributesDefaultList( ?array $only = null, ?array $except = null, ?bool $schemaOnly = false )
-	{
-		$defaultExcept = array_merge( $this->primaryKey( true ), [
+	protected function _defaultExceptAttributes(){
+		return array_merge( $this->primaryKey( true ), [
 			'created_at',
 			'updated_at',
 			'deleted_at',
+			'filter_search',
 		] );
-		
+	}
+	
+	public function attributesDefaultList( ?array $only = null, ?array $except = null, ?bool $schemaOnly = false )
+	{
 		if( is_null($except)  ){
-			$except = $defaultExcept;
+			$except = $this->_defaultExceptAttributes();
 		}
 		
 		if( $this instanceof ActiveRecordInterface ) {
