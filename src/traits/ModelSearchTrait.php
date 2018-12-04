@@ -12,18 +12,33 @@ use yii\base\Model;
 use yii\data\ActiveDataProvider;
 use yii\db\ActiveQuery;
 use yozh\form\interfaces\DefaultFiltersInterface;
+use yozh\form\models\BaseActiveRecord;
 
 trait ModelSearchTrait
 {
-	public function rules()
+	public $filter_search;
+	
+	public function rules( $rules = [], $update = false )
 	{
-		$rules = [];
+		static $_rules;
 		
-		if( $this instanceof DefaultFiltersInterface ) {
-			$rules = array_merge( $rules, parent::rules() );
+		if( !$_rules || $update){
+			
+			$_rules = [
+				
+				'required' => [ [], 'required', 'except' => BaseActiveRecord::SCENARIO_FILTER ],
+				
+				'filter_search' => [ [ 'filter_search', ], 'filter', 'filter' => '\yii\helpers\HtmlPurifier::process' ],
+				
+			];
+			
+			if( $this instanceof ActiveRecordInterface ) {
+				$_rules = parent::rules( Validator::merge( $_rules, $rules ) );
+			}
+			
 		}
 		
-		return $rules;
+		return $_rules;
 	}
 	
 	public function scenarios()

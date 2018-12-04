@@ -213,7 +213,7 @@ class ActiveField extends \yii\bootstrap\ActiveField
 		return $inputResult;
 	}
 	
-	public function baseWidget( $type, $data = null, $options = [] )
+	public function baseWidget( $type = self::DEFAULT_WIDGET_TYPE, $data = null, $options = [] )
 	{
 		if( in_array( $type, self::getConstants( 'WIDGET_TYPE_' ) ) ) {
 			$this->widgetType = $type;

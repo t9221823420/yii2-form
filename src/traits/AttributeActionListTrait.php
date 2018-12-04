@@ -21,7 +21,7 @@ trait AttributeActionListTrait
 		return [];
 	}
 	
-	public function attributesIndexList( ?array $only = null, ?array $except = null, ?bool $schemaOnly = false )
+	public function attributesIndexList( ?array $only = null, ?array $except = null, ?bool $schemaOnly = true )
 	{
 		return $this->attributesDefaultList( $only, $except, $schemaOnly );
 	}
@@ -69,11 +69,11 @@ trait AttributeActionListTrait
 			$names = $this->attributes();
 			
 			if( $only ) {
-				$names = array_intersect( $names, $only );
+				$names = array_intersect( $names, array_unique($only) );
 			}
 			
 			if( $except ) {
-				$names = array_diff( $names, $except );
+				$names = array_diff( $names, array_unique($except) );
 			}
 			
 		}

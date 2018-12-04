@@ -33,6 +33,7 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 	 * @var array $refCondition
 	 */
 	protected static $defaultFieldParams = [
+		'fields'       => [],
 		'print'        => true,
 		'refItems'     => null,
 		'refQuery'     => null,
@@ -55,6 +56,13 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 	{
 		extract( ArrayHelper::setDefaults( $params, static::$defaultFieldParams ) );
 		
+		if( isset( $fields ) && $fields instanceof \Closure ) {
+			
+			$fields = $fields( $this, $Model, $attributes, $params );
+			$params['fields'] = &$fields;
+			
+		}
+		
 		$attributeReferences = [];
 		if( $Model instanceof ActiveRecordInterface ) {
 			foreach( $Model->getShemaReferences() as $refName => $reference ) {
@@ -69,22 +77,6 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 		if( !$attributes ) {
 			$attributes = array_diff( array_keys( $Model->attributes ), $Model instanceof ActiveRecord ? $Model->primaryKey( true ) : [] );
 		}
-		
-		/*
-		// v1
-		if( $this->attributes ) {
-			$attributes = array_intersect( $attributes, (array)$this->attributes );
-		}
-		
-		// v2
-		if( $this->attributes ) {
-			foreach( $attributes as $key => $value ) {
-				if( !array_key_exists( $key, (array)$this->attributes ) ) {
-					unset($attributes[$key]);
-				}
-			}
-		}
-		*/
 		
 		$result = $columns = [];
 		
@@ -103,7 +95,20 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 			
 			$output = $field = null;
 			
-			if( $columns[ $attributeName ] ?? false ) {
+			if( $fields[ $attributeName ] ?? false ) {
+				
+				$field = $fields[ $attributeName ];
+				
+				if( $field instanceof \Closure ) {
+					$output = $field( $this, $Model, $attributes, $params );
+				}
+				else {
+					$output = $field;
+				}
+				
+			}
+			
+			else if( $columns[ $attributeName ] ?? false ) {
 				
 				$column = $columns[ $attributeName ];
 				
@@ -113,7 +118,7 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 				if( preg_match( '/(?<type>[a-z]+)[\(]{0,}(?<size>\d*)/', $column->dbType, $matches ) ) {
 					
 					if( !$Model->isNewRecord && $Model instanceof BaseActiveRecord && $Model->isReadOnlyAttribute( $attributeName ) ) {
-						// $output .= 'foo<br />'; вывод статичных аттрибутов
+						// $output = 'foo<br />'; вывод статичных аттрибутов
 					}
 					
 					else if( isset( $attributeReferences[ $attributeName ] ) ) {
@@ -157,7 +162,7 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 							$label = preg_replace( '/\sId$/', '', Html::encode( $Model->getAttributeLabel( $attributeName ) ) );
 							
 							/*
-							$output .= $field->dropDownList( $refItems, [
+							$output = $field->dropDownList( $refItems, [
 								'prompt' => Yii::t( 'app', 'Select item' ),
 							] )
 							;
@@ -190,7 +195,7 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 								$addon = false;
 							}
 							
-							$output .= $field->widget( Select2::class, [
+							$output = $field->widget( Select2::class, [
 								'data'          => $refItems,
 								'options'       => [
 									'prompt' => Yii::t( 'app', 'Select ' . $label ),
@@ -206,17 +211,31 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 						
 					}
 					
+					// for example - Dynamic properties
+					else if( $Model->$attributeName instanceof Model ) {
+						
+						$subModel = $Model->$attributeName;
+						
+						$output = $this->fields( $subModel,
+							$subModel instanceof \yozh\form\traits\AttributeActionListTrait
+								? $subModel->attributesEditList()
+								: $subModel->attributes()
+							, $params
+						);
+						
+					}
+					
 					else if( $matches['type'] == 'tinyint' && $matches['size'] == 1 ) { //boolean
 						
 						if( $Model->isNewRecord && $column->defaultValue ) {
 							$Model->$attributeName = $column->defaultValue;
 						}
 						
-						$output .= $field->checkbox( [], false );
+						$output = $field->checkbox( [], false );
 					}
 					
 					else if( $matches['type'] == 'enum' ) {
-						$output .= $field->dropDownList( array_combine( $column->enumValues, $column->enumValues ), [
+						$output = $field->dropDownList( array_combine( $column->enumValues, $column->enumValues ), [
 							'prompt' => Yii::t( 'app', 'Select ' . Inflector::titleize( $attributeName ) ),
 						] );
 					}
@@ -224,7 +243,7 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 					else if( ( $matches['type'] == 'varchar' && $matches['size'] > 256 )
 						|| $matches['type'] == 'text'
 					) {
-						$output .= $field->textarea( [ 'rows' => 3 ] );
+						$output = $field->textarea( [ 'rows' => 3 ] );
 					}
 					
 					else if( $matches['type'] == 'json' ) {
@@ -236,14 +255,14 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 							$value = $Model->$attributeName;
 						}
 						
-						$output .= $field->textarea( [
+						$output = $field->textarea( [
 							'rows'  => 3,
 							'value' => $value,
 						] );
 					}
 					
 					else {
-						$output .= $field->textInput( [ 'maxlength' => true ] );
+						$output = $field->textInput( [ 'maxlength' => true ] );
 					}
 					
 				}
@@ -270,9 +289,22 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 				$result[ $attributeName ] = $output;
 				
 				if( $print ) {
-					print $output;
+					
+					if( is_string( $output ) || is_numeric( $output ) || $output instanceof \yii\widgets\ActiveField ) {
+						print $output;
+					}
+					
+					else if( is_array( $output ) ) {
+						
+						foreach( $output as $item ) {
+							
+							if( $output instanceof \yii\widgets\ActiveField ) {
+								print $output;
+							}
+						}
+					}
+					
 				}
-				
 			}
 			
 		}
@@ -284,14 +316,14 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 	public function run()
 	{
 		
-		if( $this->model instanceof ActiveRecord ) {
+		if( $this->model instanceof Model ) {
 			
 			$Model = $this->model;
 			
 			$this->fields( $Model,
-				$Model instanceof AttributeActionListInterface
+				$Model instanceof \yozh\form\interfaces\AttributeActionListInterface
 					? $Model->attributesEditList()
-					: array_keys( $Model->attributes )
+					: $Model->attributes()
 			);
 			
 		}
@@ -320,11 +352,10 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 	public function group( $content, $label = null, $options = [] )
 	{
 		return '<div class="form-group">'
-			. ( $label ? Html::label( $label ) : '')
+			. ( $label ? Html::label( $label ) : '' )
 			. '<div class="panel panel-default"><div class="panel-body">'
 			. $content
-			. '</div></div></div>'
-			;
+			. '</div></div></div>';
 	}
 	
 	protected function _renderSubmitButton()
