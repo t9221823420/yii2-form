@@ -56,12 +56,13 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 	{
 		extract( ArrayHelper::setDefaults( $params, static::$defaultFieldParams ) );
 		
-		if( isset( $fields ) && $fields instanceof \Closure ) {
+		if( $fields instanceof \Closure ) {
 			
 			$fields = $fields( $this, $Model, $attributes, $params );
-			$params['fields'] = &$fields;
 			
 		}
+		
+		$params['fields'] = &$fields;
 		
 		$attributeReferences = [];
 		if( $Model instanceof ActiveRecordInterface ) {
@@ -95,14 +96,18 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 			
 			$output = $field = null;
 			
-			if( $fields[ $attributeName ] ?? false ) {
+			if( is_array( $fields ) && array_key_exists( $attributeName, $fields ) ) {
 				
 				$field = $fields[ $attributeName ];
 				
 				if( $field instanceof \Closure ) {
 					$output = $field( $this, $Model, $attributes, $params );
 				}
-				else {
+				elseif( empty($field) ) {
+					continue;
+				}
+				// $field can be set to true for order reason
+				else if( $field !== true){
 					$output = $field;
 				}
 				
@@ -137,22 +142,39 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 								$refLabel = $reference[ $attributeName ];
 							}
 							
-							/*
-							 * @todo доделать, когда будет полностью реализован Relations
-							 * на текущий момент определяется по связям в БД
-							 * нет возможности определить какой класс отвечает за getList
-							 */
-							if( 0 && ( new ReflectionClass( 'TheClass' ) )->implementsInterface( ActiveRecordInterface ) ) {
+							$relationGetter = 'get' . Inflector::camelize( preg_replace( '/_id$/', '', $attributeName ) );
+							
+							if( method_exists( $Model, $relationGetter )
+								&& $activeQuery = $Model->$relationGetter()
+							) {
+								$refModelClass = $activeQuery->modelClass;
+							}
+							else {
+								$refModelClass = null;
+							}
+							
+							if( $refModelClass && ( new \ReflectionClass( $refModelClass ) )->implementsInterface( ActiveRecordInterface::class ) ) {
 								
-								$refItems = 1;
+								//$condition, $key, $value, $indexBy, $orderBy
+								$refItems = $refModelClass::getList( $refCondition, $reference[ $attributeName ], $refLabel, $reference[ $attributeName ] );
 								
 							}
 							else {
 								
-								$refQuery = ( new Query() )
-									->select( [ $refLabel, $reference[ $attributeName ] ] )
+								if( $activeQuery ?? false ){
+									
+									$refQuery = clone $activeQuery;
+									
+									// reset ActiveQuery to simple Query
+									$refQuery->primaryModel = null;
+								}
+								else{
+									$refQuery = ( new Query() );
+								}
+								
+								$refQuery ->select( [ $refLabel, $reference[ $attributeName ] ] )
 									->from( $reference[0] )
-									->andFilterWhere( $refCondition )
+									->andWhere( $refCondition )
 								;
 								
 								$refItems = $refQuery->indexBy( $reference[ $attributeName ] )->column();
@@ -167,17 +189,6 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 							] )
 							;
 							*/
-							
-							$relationGetter = 'get' . Inflector::camelize( preg_replace( '/_id$/', '', $attributeName ) );
-							
-							if( method_exists( $Model, $relationGetter )
-								&& $activeQuery = $Model->$relationGetter()
-							) {
-								$refModelClass = $activeQuery->modelClass;
-							}
-							else {
-								$refModelClass = null;
-							}
 							
 							if( $refModelClass && $refRoute = $refModelClass::getRoute( 'create' ) ) {
 								$addon = [
@@ -351,6 +362,10 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 	
 	public function group( $content, $label = null, $options = [] )
 	{
+		if( is_array($content) ){
+			$content = implode('' ,$content);
+		}
+		
 		return '<div class="form-group">'
 			. ( $label ? Html::label( $label ) : '' )
 			. '<div class="panel panel-default"><div class="panel-body">'

@@ -19,9 +19,10 @@ trait DefaultFiltersTrait
 	 */
 	public function defaultFiltersList( ?array $only = null, ?array $except = null, ?bool $schemaOnly = false )
 	{
+		// return $this->attributesIndexList( $only, $except, $schemaOnly );
+		// set empty to prevent LIKE search for all $attributes.
 		return [];
 	}
-	
 	
 	/**
 	 * @param $query

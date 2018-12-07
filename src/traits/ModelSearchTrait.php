@@ -13,6 +13,7 @@ use yii\data\ActiveDataProvider;
 use yii\db\ActiveQuery;
 use yozh\form\interfaces\DefaultFiltersInterface;
 use yozh\form\models\BaseActiveRecord;
+use yozh\base\interfaces\models\ActiveRecordInterface;
 
 trait ModelSearchTrait
 {
@@ -33,7 +34,7 @@ trait ModelSearchTrait
 			];
 			
 			if( $this instanceof ActiveRecordInterface ) {
-				$_rules = parent::rules( Validator::merge( $_rules, $rules ) );
+				$_rules = parent::rules( \yozh\base\components\validators\Validator::merge( $_rules, $rules ) );
 			}
 			
 		}
