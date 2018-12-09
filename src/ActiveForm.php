@@ -35,9 +35,6 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 	protected static $defaultFieldParams = [
 		'fields'       => [],
 		'print'        => true,
-		'refItems'     => null,
-		'refQuery'     => null,
-		'refCondition' => [],
 	];
 	
 	/**
@@ -62,18 +59,7 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 			
 		}
 		
-		$params['fields'] = &$fields;
-		
-		$attributeReferences = [];
-		if( $Model instanceof ActiveRecordInterface ) {
-			foreach( $Model->getShemaReferences() as $refName => $reference ) {
-				foreach( $reference as $fk => $pk ) {
-					$attributeReferences[ $fk ][ $refName ] = $reference;
-				}
-			}
-			
-			$fk = $pk = null;
-		}
+		$params['fields'] = &$fields;;
 		
 		if( !$attributes ) {
 			$attributes = array_diff( array_keys( $Model->attributes ), $Model instanceof ActiveRecord ? $Model->primaryKey( true ) : [] );
@@ -103,11 +89,11 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 				if( $field instanceof \Closure ) {
 					$output = $field( $this, $Model, $attributes, $params );
 				}
-				elseif( empty($field) ) {
+				else if( empty( $field ) ) {
 					continue;
 				}
 				// $field can be set to true for order reason
-				else if( $field !== true){
+				else if( $field !== true ) {
 					$output = $field;
 				}
 				
@@ -126,69 +112,16 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 						// $output = 'foo<br />'; вывод статичных аттрибутов
 					}
 					
-					else if( isset( $attributeReferences[ $attributeName ] ) ) {
+					//else if( isset( $attributeReferences[ $attributeName ] ) ) {
+					else if( ( new \ReflectionClass( $refModelClass ) )->implementsInterface( ActiveRecordInterface::class )
+						&& $references = $Model->getAttributeReferences( $attributeName )
+					) {
 						
-						foreach( $attributeReferences[ $attributeName ] as $refName => $reference ) {
+						foreach( $references as $refName => $Reference ) {
 							
-							$refAttributes = $Shema->getTableSchema( $reference[0] )->columns;
-							
-							if( isset( $refAttributes['name'] ) ) {
-								$refLabel = 'name';
-							}
-							else if( isset( $refAttributes['title'] ) ) {
-								$refLabel = 'title';
-							}
-							else {
-								$refLabel = $reference[ $attributeName ];
-							}
-							
-							$relationGetter = 'get' . Inflector::camelize( preg_replace( '/_id$/', '', $attributeName ) );
-							
-							if( method_exists( $Model, $relationGetter )
-								&& $activeQuery = $Model->$relationGetter()
-							) {
-								$refModelClass = $activeQuery->modelClass;
-							}
-							else {
-								$refModelClass = null;
-							}
-							
-							if( $refModelClass && ( new \ReflectionClass( $refModelClass ) )->implementsInterface( ActiveRecordInterface::class ) ) {
-								
-								//$condition, $key, $value, $indexBy, $orderBy
-								$refItems = $refModelClass::getList( $refCondition, $reference[ $attributeName ], $refLabel, $reference[ $attributeName ] );
-								
-							}
-							else {
-								
-								if( $activeQuery ?? false ){
-									
-									$refQuery = clone $activeQuery;
-									
-									// reset ActiveQuery to simple Query
-									$refQuery->primaryModel = null;
-								}
-								else{
-									$refQuery = ( new Query() );
-								}
-								
-								$refQuery ->select( [ $refLabel, $reference[ $attributeName ] ] )
-									->from( $reference[0] )
-									->andWhere( $refCondition )
-								;
-								
-								$refItems = $refQuery->indexBy( $reference[ $attributeName ] )->column();
-								
-							}
+							$refModelClass = $Reference->refModelClass;
 							
 							$label = preg_replace( '/\sId$/', '', Html::encode( $Model->getAttributeLabel( $attributeName ) ) );
-							
-							/*
-							$output = $field->dropDownList( $refItems, [
-								'prompt' => Yii::t( 'app', 'Select item' ),
-							] )
-							;
-							*/
 							
 							if( $refModelClass && $refRoute = $refModelClass::getRoute( 'create' ) ) {
 								$addon = [
@@ -205,6 +138,8 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 							else {
 								$addon = false;
 							}
+							
+							$refItems = $Model->getAttributeReferenceItems( $attributeName, $refName );
 							
 							$output = $field->widget( Select2::class, [
 								'data'          => $refItems,
@@ -362,8 +297,8 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 	
 	public function group( $content, $label = null, $options = [] )
 	{
-		if( is_array($content) ){
-			$content = implode('' ,$content);
+		if( is_array( $content ) ) {
+			$content = implode( '', $content );
 		}
 		
 		return '<div class="form-group">'
