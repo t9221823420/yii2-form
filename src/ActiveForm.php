@@ -113,7 +113,7 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
 					}
 					
 					//else if( isset( $attributeReferences[ $attributeName ] ) ) {
-					else if( ( new \ReflectionClass( $refModelClass ) )->implementsInterface( ActiveRecordInterface::class )
+					else if( $Model instanceof ActiveRecordInterface
 						&& $references = $Model->getAttributeReferences( $attributeName )
 					) {
 						

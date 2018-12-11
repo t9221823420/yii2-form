@@ -46,18 +46,9 @@ trait AttributeActionListTrait
 		return $this->attributesEditList( $only, $except, $schemaOnly );
 	}
 	
-	protected function _defaultExceptAttributes(){
-		return array_merge( $this->primaryKey( true ), [
-			'created_at',
-			'updated_at',
-			'deleted_at',
-			'filter_search',
-		] );
-	}
-	
 	public function attributesDefaultList( ?array $only = null, ?array $except = null, ?bool $schemaOnly = false )
 	{
-		if( is_null($except)  ){
+		if( is_null( $except ) ) {
 			$except = $this->_defaultExceptAttributes();
 		}
 		
@@ -69,15 +60,25 @@ trait AttributeActionListTrait
 			$names = $this->attributes();
 			
 			if( $only ) {
-				$names = array_intersect( $names, array_unique($only) );
+				$names = array_intersect( $names, array_unique( $only ) );
 			}
 			
 			if( $except ) {
-				$names = array_diff( $names, array_unique($except) );
+				$names = array_diff( $names, array_unique( $except ) );
 			}
 			
 		}
 		
 		return array_combine( $names, $names );
+	}
+	
+	protected function _defaultExceptAttributes()
+	{
+		return array_merge( $this->primaryKey( true ), [
+			'created_at',
+			'updated_at',
+			'deleted_at',
+			'filter_search',
+		] );
 	}
 }
