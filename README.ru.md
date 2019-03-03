@@ -7,9 +7,7 @@
 [![License](https://img.shields.io/github/license/t9221823420/yii2-form.svg)](https://packagist.org/packages/yozh/yii2-form)
 [![PHP](https://img.shields.io/packagist/php-v/yozh/yii2-form.svg)](https://packagist.org/packages/yozh/yii2-form)
 
-[README на русском языке](https://github.com/t9221823420/yii2-form/blob/master/README.ru.md)
-
-This is a basic library containing base classes, traits, helpers, and utilities that are widely used by the Yozh libraries, and also are recommended for use in the wide majority of typical projects.
+Это базовая библиотека, содержащая основные классы, трейты, хелперы и утилиты, которые широко используются библиотеками Yozh, а также рекомендуются к использованию в подавляющем большинстве типовых проектов.
 
 ## Classes
 
